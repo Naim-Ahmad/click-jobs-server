@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const jwt = require('jsonwebtoken')
+const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const morgan = require("morgan");
@@ -14,16 +14,23 @@ const port = process.env.PORT || 5000;
 /**
  * MiddleWares
  */
-// global 
+// global
 app.use([cors(), express.json(), cookieParser(), morgan("dev")]);
 
 // router level middleware
-const verifyToken = (req, res, next)=>{
-  const token = req?.cookies?.token
-  if(!token){
-    res.status(401).send({message: 'unauthorized access'})
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+  if (!token) {
+    return res.status(401).send({ message: "unauthorized access" });
   }
-}
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "unauthorized access" });
+    }
+    req.decoded = decoded
+    next()
+  });
+};
 
 // mongodb uri
 // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.1fvvkjr.mongodb.net/?retryWrites=true&w=majority`;
@@ -48,33 +55,39 @@ async function run() {
       .db("JobClick")
       .collection("appliedJobs");
 
-      /**
-       * security related api
-       */
+    /**
+     * security related api
+     */
 
-      // TODO: set expires date until logout
+    // TODO: set expires date until logout
 
-      app.post('/create-token', async(req, res) => {
-          try {
-              const token = jwt.sign(req.body, process.env.JWT_SECRET, {expiresIn: '1h'})
-              res.cookie('token', token, {
-                httpOnly: true,
-                secure: false,
-                // expires: new Date() * 1
-              }).send({message: 'Token Created'})
-          } catch (error) {
-              res.status(500).send(error.message)
-          }
-      })
+    app.post("/create-token", async (req, res) => {
+      try {
+        const token = jwt.sign(req.body, process.env.JWT_SECRET, {
+          expiresIn: "1h",
+        });
+        res
+          .cookie("token", token, {
+            httpOnly: true,
+            secure: false,
+            // expires: new Date() * 1
+          })
+          .send({ message: "Token Created" });
+      } catch (error) {
+        res.status(500).send(error.message);
+      }
+    });
 
-      // (DELETE)
-      app.delete('/delete-token', async(req, res) => {
-          try {
-             res.clearCookie('token', {httpOnly: true}).send({message: 'Deleted Token'})
-          } catch (error) {
-              res.status(500).send(error.message)
-          }
-      })
+    // (DELETE)
+    app.delete("/delete-token", async (req, res) => {
+      try {
+        res
+          .clearCookie("token", { httpOnly: true })
+          .send({ message: "Deleted Token" });
+      } catch (error) {
+        res.status(500).send(error.message);
+      }
+    });
 
     /**
      * Jobs related api
