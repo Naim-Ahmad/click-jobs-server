@@ -93,7 +93,7 @@ async function run() {
      * Jobs related api
      */
     //(GET) get all jobs if have a query find the query data else find all data
-    app.get("/jobs", async (req, res) => {
+    app.get("/jobs", verifyQuery, async (req, res) => {
       try {
         let query = {};
         const queryLength = Object.keys(query).length;
