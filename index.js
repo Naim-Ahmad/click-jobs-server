@@ -14,7 +14,8 @@ const port = process.env.PORT || 5000;
 app.use([cors(), express.json(), cookieParser(), morgan("dev")]);
 
 // mongodb uri
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.1fvvkjr.mongodb.net/?retryWrites=true&w=majority`;
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.1fvvkjr.mongodb.net/?retryWrites=true&w=majority`;
+const uri = "mongodb://localhost:27017/";
 
 // create mongodb client
 const client = new MongoClient(uri, {
@@ -31,7 +32,13 @@ async function run() {
     await client.connect();
 
     const jobsCollection = client.db("JobClick").collection("jobs");
+    const appliedJobsCollection = client
+      .db("JobClick")
+      .collection("appliedJobs");
 
+    /**
+     * Jobs related api
+     */
     //(GET) get all jobs if have a query find the query data else find all data
     app.get("/jobs", async (req, res) => {
       try {
@@ -87,12 +94,14 @@ async function run() {
     // (PUT) Update a job by id
     app.put("/update-job/:id", async (req, res) => {
       try {
-        const query = {_id: new ObjectId(req.params.id)}
+        const query = { _id: new ObjectId(req.params.id) };
         const updateJobs = {
-          $set: req.body
+          $set: req.body,
         };
-        const result = await jobsCollection.updateOne(query, updateJobs, {upsert: true})
-        res.send(result)
+        const result = await jobsCollection.updateOne(query, updateJobs, {
+          upsert: true,
+        });
+        res.send(result);
       } catch (error) {
         res.status(500).send(error.message);
       }
@@ -103,7 +112,51 @@ async function run() {
       try {
         const query = { _id: new ObjectId(req.params.id) };
         const result = await jobsCollection.deleteOne(query);
-        res.send(result)
+        res.send(result);
+      } catch (error) {
+        res.status(500).send(error.message);
+      }
+    });
+
+    /**
+     *
+     * Applied Jobs Related Api
+     */
+    // (Get) query applied jobs (Private Route)
+    app.get("/applied-jobs", async (req, res) => {
+      try {
+        const query = req.query;
+        console.log(query);
+        if (!query.userEmail) {
+          return res
+            .status(404)
+            .send("Please give me user email as a query params");
+        }
+        const appliedJobs = await appliedJobsCollection.find(query).toArray();
+        res.send(appliedJobs);
+      } catch (error) {
+        res.status(500).send(error.message);
+      }
+    });
+
+    // (POST) (Private Route)
+    app.post("/apply-jobs", async (req, res) => {
+      try {
+        const result = await appliedJobsCollection.insertOne(req.body);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send(error.message);
+        console.log(error);
+      }
+    });
+
+    // (DELETE) (Private Route)
+    app.delete("/cancel-jobs/:id", async (req, res) => {
+      try {
+        const result = await appliedJobsCollection.deleteOne({
+          _id: new ObjectId(req.params.id),
+        });
+        res.send(result);
       } catch (error) {
         res.status(500).send(error.message);
       }
