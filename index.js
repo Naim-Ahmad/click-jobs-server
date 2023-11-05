@@ -15,7 +15,10 @@ const port = process.env.PORT || 5000;
  * MiddleWares
  */
 // global
-app.use([cors(), express.json(), cookieParser(), morgan("dev")]);
+app.use([cors({
+  origin: ["http://localhost:5173"],
+  credentials: true
+}), express.json(), cookieParser(), morgan("dev")]);
 
 // router level middleware
 const verifyToken = (req, res, next) => {
@@ -59,8 +62,6 @@ async function run() {
      * security related api
      */
 
-    // TODO: set expires date until logout
-
     app.post("/create-token", async (req, res) => {
       try {
         const token = jwt.sign(req.body, process.env.JWT_SECRET, {
@@ -69,8 +70,7 @@ async function run() {
         res
           .cookie("token", token, {
             httpOnly: true,
-            secure: false,
-            // expires: new Date() * 1
+            secure: false
           })
           .send({ message: "Token Created" });
       } catch (error) {
@@ -93,7 +93,7 @@ async function run() {
      * Jobs related api
      */
     //(GET) get all jobs if have a query find the query data else find all data
-    app.get("/jobs", verifyQuery, async (req, res) => {
+    app.get("/jobs", async (req, res) => {
       try {
         let query = {};
         const queryLength = Object.keys(query).length;
