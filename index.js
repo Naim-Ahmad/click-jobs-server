@@ -179,7 +179,7 @@ async function run() {
       try {
         const query = req.query;
         console.log(query);
-        if (!query.userEmail) {
+        if (!query.applierEmail) {
           return res
             .status(404)
             .send("Please give me user email as a query params");
@@ -198,7 +198,7 @@ async function run() {
         const updateFilter  = {
           $inc: {jobApplicantsNumber: 1}
         }
-        jobsCollection.findOneAndUpdate(query, updateFilter, {upsert: true})
+        await jobsCollection.findOneAndUpdate(query, updateFilter, {upsert: true})
         const result = await appliedJobsCollection.insertOne(req.body);
         res.send(result);
       } catch (error) {
