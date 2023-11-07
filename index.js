@@ -96,12 +96,11 @@ async function run() {
     app.get("/jobs", async (req, res) => {
       try {
         let query = {};
-        const queryLength = Object.keys(query).length;
+        const queryLength = Object.keys(req.query).length;
 
         if (queryLength) {
           query = req.query;
         }
-
         const result = await jobsCollection.find(query).toArray();
         res.send(result);
       } catch (error) {
