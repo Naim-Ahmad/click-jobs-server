@@ -123,7 +123,7 @@ async function run() {
     });
 
     // (GET) get all jobs which is posted by user
-    app.get("/my-jobs", async (req, res) => {
+    app.get("/my-jobs", verifyToken, async (req, res) => {
       try {
         const result = await jobsCollection.find(req.query).toArray();
         res.send(result);
@@ -176,7 +176,7 @@ async function run() {
      * Applied Jobs Related Api
      */
     // (Get) query applied jobs (Private Route)
-    app.get("/applied-jobs", async (req, res) => {
+    app.get("/applied-jobs", verifyToken, async (req, res) => {
       try {
         const query = req.query;
         console.log(query);
@@ -193,7 +193,7 @@ async function run() {
     });
 
     // (POST) (Private Route)
-    app.post("/apply-jobs", async (req, res) => {
+    app.post("/apply-jobs", verifyToken, async (req, res) => {
       try {
         const result = await appliedJobsCollection.insertOne(req.body);
         res.send(result);
@@ -204,7 +204,7 @@ async function run() {
     });
 
     // (DELETE) (Private Route)
-    app.delete("/cancel-jobs/:id", async (req, res) => {
+    app.delete("/cancel-jobs/:id", verifyToken, async (req, res) => {
       try {
         const result = await appliedJobsCollection.deleteOne({
           _id: new ObjectId(req.params.id),
