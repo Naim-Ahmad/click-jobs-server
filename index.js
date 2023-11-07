@@ -193,8 +193,13 @@ async function run() {
     });
 
     // (POST) (Private Route)
-    app.post("/apply-jobs", verifyToken, async (req, res) => {
+    app.post("/apply-jobs/:id", verifyToken, async (req, res) => {
       try {
+        const query = {_id: new ObjectId(req.params?.id)}
+        const updateFilter  = {
+          $inc: {jobApplicantsNumber: 1}
+        }
+        jobsCollection.findOneAndUpdate(query, updateFilter, {upsert: true})
         const result = await appliedJobsCollection.insertOne(req.body);
         res.send(result);
       } catch (error) {
