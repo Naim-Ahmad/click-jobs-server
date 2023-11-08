@@ -17,7 +17,9 @@ const port = process.env.PORT || 5000;
 // global
 app.use([
   cors({
-    origin: ["http://localhost:5173", "https://click-jobs-2193e.web.app", "https://click-jobs-2193e.firebaseapp.com/"],
+    origin: ["http://localhost:5173", 
+    "https://click-jobs-2193e.web.app", 
+    "https://click-jobs-2193e.firebaseapp.com"],
     credentials: true,
   }),
   express.json(),
@@ -80,7 +82,8 @@ async function run() {
         res
           .cookie("token", token, {
             httpOnly: true,
-            secure: false,
+            secure: true,
+            sameSite: "none"
           })
           .send({ message: "Token Created" });
       } catch (error) {
