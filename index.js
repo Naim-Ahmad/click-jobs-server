@@ -66,6 +66,8 @@ async function run() {
 
     // Connect the client to the server	(optional starting in v4.7)
     const jobsCollection = client.db("JobClick").collection("jobs");
+    const storiesCollection = client.db("JobClick").collection("stories");
+    const employsCollection = client.db("JobClick").collection("employs");
     const appliedJobsCollection = client
       .db("JobClick")
       .collection("appliedJobs");
@@ -101,6 +103,35 @@ async function run() {
         res.status(500).send(error.message);
       }
     });
+
+    app.get('/stories', async(req, res)=>{
+      try {
+        const result = await storiesCollection.find({}).toArray()
+        res.send(result)
+        
+      } catch (error) {
+        console.log(error);
+      }
+    })
+
+    app.post('/stories', async(req, res)=>{
+      try {
+        const result = await storiesCollection.insertOne(req.body)
+        res.send(result)
+        
+      } catch (error) {
+        console.log(error);
+      }
+    })
+
+    app.get('/employs', async(req, res)=>{
+      const result = await employsCollection.find().toArray()
+      res.send(result)
+    })
+    app.post('/employs', async(req, res)=>{
+      const result = await employsCollection.insertOne(req.body)
+      res.send(result)
+    })
 
     /**
      * Jobs related api
