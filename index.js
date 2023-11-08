@@ -15,10 +15,15 @@ const port = process.env.PORT || 5000;
  * MiddleWares
  */
 // global
-app.use([cors({
-  origin: ["http://localhost:5173"],
-  credentials: true
-}), express.json(), cookieParser(), morgan("dev")]);
+app.use([
+  cors({
+    origin: ["http://localhost:5173", "https://click-jobs-2193e.web.app", "https://click-jobs-2193e.firebaseapp.com/"],
+    credentials: true,
+  }),
+  express.json(),
+  cookieParser(),
+  morgan("dev"),
+]);
 
 // router level middleware
 const verifyToken = (req, res, next) => {
@@ -30,14 +35,14 @@ const verifyToken = (req, res, next) => {
     if (err) {
       return res.status(401).send({ message: "unauthorized access" });
     }
-    req.decoded = decoded
-    next()
+    req.decoded = decoded;
+    next();
   });
 };
 
 // mongodb uri
-// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.1fvvkjr.mongodb.net/?retryWrites=true&w=majority`;
-const uri = "mongodb://localhost:27017/";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.1fvvkjr.mongodb.net/?retryWrites=true&w=majority`;
+// const uri = "mongodb://localhost:27017/";
 
 // create mongodb client
 const client = new MongoClient(uri, {
@@ -50,9 +55,14 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    client.connect();
+    // Send a ping to confirm a successful connection
+    client.db("admin").command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
 
+    // Connect the client to the server	(optional starting in v4.7)
     const jobsCollection = client.db("JobClick").collection("jobs");
     const appliedJobsCollection = client
       .db("JobClick")
@@ -70,7 +80,7 @@ async function run() {
         res
           .cookie("token", token, {
             httpOnly: true,
-            secure: false
+            secure: false,
           })
           .send({ message: "Token Created" });
       } catch (error) {
@@ -194,11 +204,13 @@ async function run() {
     // (POST) (Private Route)
     app.post("/apply-jobs/:id", verifyToken, async (req, res) => {
       try {
-        const query = {_id: new ObjectId(req.params?.id)}
-        const updateFilter  = {
-          $inc: {jobApplicantsNumber: 1}
-        }
-        await jobsCollection.findOneAndUpdate(query, updateFilter, {upsert: true})
+        const query = { _id: new ObjectId(req.params?.id) };
+        const updateFilter = {
+          $inc: { jobApplicantsNumber: 1 },
+        };
+        await jobsCollection.findOneAndUpdate(query, updateFilter, {
+          upsert: true,
+        });
         const result = await appliedJobsCollection.insertOne(req.body);
         res.send(result);
       } catch (error) {
@@ -218,12 +230,6 @@ async function run() {
         res.status(500).send(error.message);
       }
     });
-
-    // Send a ping to confirm a successful connection
-    client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
   } catch (err) {
     console.log(err);
   }
