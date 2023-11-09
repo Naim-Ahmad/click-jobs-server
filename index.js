@@ -67,7 +67,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     const jobsCollection = client.db("JobClick").collection("jobs");
     const storiesCollection = client.db("JobClick").collection("stories");
-    const employsCollection = client.db("JobClick").collection("employs");
+    const employsCollection = client.db("JobClick").collection("employes");
     const appliedJobsCollection = client
       .db("JobClick")
       .collection("appliedJobs");
